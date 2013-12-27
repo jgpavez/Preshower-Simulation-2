@@ -1,0 +1,25 @@
+#ifndef BcalTrackingAction_h
+#define BcalTrackingAction_h 1
+
+#include "G4UserTrackingAction.hh"
+#include "G4ParticleDefinition.hh"
+
+class C2EventAction;
+class C2RunAction;
+
+class BcalTrackingAction : public G4UserTrackingAction {
+
+public:
+	BcalTrackingAction();
+	~BcalTrackingAction();
+   
+	void PreUserTrackingAction(const G4Track*);
+	void PostUserTrackingAction(const G4Track*);
+
+private:
+	G4ParticleDefinition* muonPlus;
+	G4ParticleDefinition* positron;
+	G4ParticleDefinition* particle;
+};
+
+#endif

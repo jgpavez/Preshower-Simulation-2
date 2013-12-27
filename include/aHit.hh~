@@ -1,0 +1,47 @@
+#ifndef aHit_h
+#define aHit_h 1
+
+#include "G4VHit.hh"
+#include "G4THitsCollection.hh"
+#include "G4Allocator.hh"
+#include "G4ThreeVector.hh"
+
+
+class aHit : public G4VHit{
+
+public:
+	aHit();
+	aHit(G4double, G4ThreeVector);
+	~aHit();
+	
+	inline void* operator new(size_t);
+	inline void  operator delete(void*);
+
+	void Draw();
+	void Print();	
+
+	void setEnergy(G4double Energy)	{energy = Energy;};
+	G4double getEnergy() const	{return energy;  };
+	void setPos(G4ThreeVector Pos)  {pos = Pos; };
+	G4ThreeVector getPos() const		{return pos;};
+
+private:
+	G4double energy;
+	G4ThreeVector pos;
+};
+
+typedef G4THitsCollection<aHit> HitsCollection;
+extern G4Allocator<aHit> HitAllocator;
+
+inline void* aHit::operator new(size_t){
+
+	void* hit;
+	hit = (void*)HitAllocator.MallocSingle();
+	return hit;
+}
+
+inline void aHit::operator delete(void* hit){
+
+	HitAllocator.FreeSingle((aHit*)hit);
+}
+#endif

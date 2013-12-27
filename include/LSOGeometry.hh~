@@ -1,0 +1,21 @@
+#ifndef LSOGeometry_h
+#define LSOGeomerty_h 1
+
+#include "G4VUserDetectorConstruction.hh"
+#include "LSORunAction.hh"
+#include "G4VPhysicalVolume.hh"
+
+class LSOGeometry : public G4VUserDetectorConstruction
+{
+
+public:
+	LSOGeometry(LSORunAction*);	
+	~BcalGeometry();
+	G4VPhysicalVolume* Construct();
+	
+private:
+	LSORunAction* runAction;
+
+};
+
+#endif

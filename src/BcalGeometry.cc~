@@ -1,0 +1,362 @@
+
+#include "globals.hh"
+#include "BcalGeometry.hh"
+#include "BcalSD.hh"
+
+#include "G4Material.hh"
+#include "G4NistManager.hh"
+#include "G4Box.hh"
+#include "G4Tubs.hh"
+#include "G4Polycone.hh"
+#include "G4ExtrudedSolid.hh"
+#include "G4TwoVector.hh"
+#include "G4LogicalVolume.hh"
+#include "G4IntersectionSolid.hh"
+#include "G4PVPlacement.hh"
+#include "G4ThreeVector.hh"
+#include "G4RotationMatrix.hh"
+#include "G4UnionSolid.hh"
+#include "G4AssemblyVolume.hh"
+#include "G4VisAttributes.hh"
+#include "G4LogicalBorderSurface.hh"
+#include "G4LogicalSkinSurface.hh"
+#include "G4OpticalSurface.hh"
+#include "G4SDManager.hh"
+
+BcalGeometry::BcalGeometry(BcalRunAction* runaction)
+	: runAction(runaction)
+{}
+
+BcalGeometry::~BcalGeometry()
+{}
+
+G4VPhysicalVolume* BcalGeometry::Construct()
+{
+
+//Materials____________________________________________________________
+
+//Get Materials from Geant4 Material Data Base
+G4NistManager* manager = G4NistManager::Instance();
+
+G4Material* Air 	 = manager->FindOrBuildMaterial("G4_AIR");				
+G4Material* Polystyrene  = manager->FindOrBuildMaterial("G4_POLYSTYRENE");	
+G4Material* Plexiglass	 = manager->FindOrBuildMaterial("G4_PLEXIGLASS");
+G4Material* Lead 	 = manager->FindOrBuildMaterial("G4_Pb");
+G4Material* Galactic	 = manager->FindOrBuildMaterial("G4_Galactic");
+
+//Build Material from elements
+
+//Second Cladding Material
+G4Element* H = new G4Element("Hydrogen", "H", 1 , 1.008*g/mole);
+G4Element* C = new G4Element("Carbono" , "C", 6 , 12.01*g/mole);		
+G4Element* O = new G4Element("Oxygen"  , "O", 8 , 16.00*g/mole);
+
+G4Material* FluorAcry = new G4Material("FluorAcrylic",1.19*g/cm3 , 3);
+FluorAcry->AddElement(H, 08.0538*perCent);
+FluorAcry->AddElement(C, 59.9848*perCent);
+FluorAcry->AddElement(O, 31.9614*perCent);
+
+
+//Optical properties Attached to Materials_____________________________
+
+const G4int num = 21;
+G4double ene[num]  ={1.50*eV,1.585*eV,1.67*eV,1.755*eV,
+		     1.84*eV,1.925*eV,2.01*eV,2.095*eV,
+		     2.18*eV,2.265*eV,2.35*eV,2.435*eV,
+		     2.52*eV,2.605*eV,2.69*eV,2.775*eV,
+		     2.86*eV,2.945*eV,3.03*eV,3.115*eV,
+		     3.2*eV};
+
+G4double fast[num]  ={0.00777764,0.00802597,0.00866771,0.0101913,
+		      0.013564,  0.0206065, 0.0346015, 0.0612318,
+		      0.109919,  0.195448,  0.339148,  0.567365,
+		      0.902678,  1.34465,   1.85048,   2.30658,
+		      2.34068,   1.38598,   0.246106,  0.0109163,
+		      0.00765568};
+
+G4double rCore[num] ={1.60, 1.60, 1.60, 1.60,
+		      1.60, 1.60, 1.60, 1.60,
+		      1.60, 1.60, 1.60, 1.60,
+		      1.60, 1.60, 1.60, 1.60,
+		      1.60, 1.60, 1.60, 1.60,
+		      1.60};
+
+G4double rClad1[num] = {1.49, 1.49, 1.49, 1.49,
+			1.49, 1.49, 1.49, 1.49,
+			1.49, 1.49, 1.49, 1.49,
+			1.49, 1.49, 1.49, 1.49,
+			1.49, 1.49, 1.49, 1.49,
+			1.49};
+
+G4double rClad2[num] = {1.42, 1.42, 1.42, 1.42,
+			1.42, 1.42, 1.42, 1.42,
+			1.42, 1.42, 1.42, 1.42,
+			1.42, 1.42, 1.42, 1.42,
+			1.42, 1.42, 1.42, 1.42,
+			1.42};
+/*
+G4double rGlue[num]  = {1.56, 1.56, 1.56, 1.56,
+			1.56, 1.56, 1.56, 1.56, 
+			1.56, 1.56, 1.56, 1.56,
+			1.56, 1.56, 1.56, 1.56,
+			1.56, 1.56, 1.56, 1.56,
+			1.56};
+*/
+G4double rAir[num]   = {1.00, 1.00, 1.00, 1.00,
+			1.00, 1.00, 1.00, 1.00,
+			1.00, 1.00, 1.00, 1.00,
+			1.00, 1.00, 1.00, 1.00,
+			1.00, 1.00, 1.00, 1.00,
+			1.00};
+
+G4double abs[num]    = {3.5*m, 3.5*m, 3.5*m, 3.5*m,
+			3.5*m, 3.5*m, 3.5*m, 3.5*m,
+			3.5*m, 3.5*m, 3.5*m, 3.5*m,
+			3.5*m, 3.5*m, 3.5*m, 3.5*m,
+			3.5*m, 3.5*m, 3.5*m, 3.5*m,
+			3.5*m};
+
+G4MaterialPropertiesTable* mpt1 = new G4MaterialPropertiesTable();
+G4MaterialPropertiesTable* mpt2 = new G4MaterialPropertiesTable();
+G4MaterialPropertiesTable* mpt3 = new G4MaterialPropertiesTable();
+G4MaterialPropertiesTable* mpt4 = new G4MaterialPropertiesTable();
+
+
+mpt1->AddProperty("FASTCOMPONENT", ene, fast, num);
+mpt1->AddProperty("RINDEX", ene, rCore , num);
+mpt1->AddProperty("ABSLENGTH", ene, abs, num);
+mpt1->AddConstProperty("SCINTILLATIONYIELD",80./MeV);
+mpt1->AddConstProperty("RESOLUTIONSCALE", 1);
+mpt1->AddConstProperty("FASTTIMECONSTANT",2.7*ns);
+
+mpt2->AddProperty("FASTCOMPONENT", ene, fast, num);
+mpt2->AddProperty("RINDEX", ene, rClad1 , num);
+mpt2->AddProperty("ABSLENGTH", ene, abs, num);
+mpt2->AddConstProperty("SCINTILLATIONYIELD",80./MeV);
+mpt2->AddConstProperty("RESOLUTIONSCALE", 1);
+mpt2->AddConstProperty("FASTTIMECONSTANT",2.7*ns);
+
+mpt3->AddProperty("FASTCOMPONENT", ene, fast, num);
+mpt3->AddProperty("RINDEX", ene, rClad2 , num);
+mpt3->AddProperty("ABSLENGTH", ene, abs, num);
+mpt3->AddConstProperty("SCINTILLATIONYIELD",80./MeV);
+mpt3->AddConstProperty("RESOLUTIONSCALE", 1);
+mpt3->AddConstProperty("FASTTIMECONSTANT",2.7*ns);
+
+mpt4->AddProperty("RINDEX" , ene, rAir , num);
+
+Polystyrene->SetMaterialPropertiesTable(mpt1);
+Plexiglass->SetMaterialPropertiesTable(mpt2);
+FluorAcry->SetMaterialPropertiesTable(mpt3);
+Air->SetMaterialPropertiesTable(mpt4);
+
+
+//Volumes Definition________________________________________
+
+//Parameters--------
+G4ThreeVector Id_tr(0,0,0);
+G4RotationMatrix* Id_rot = new G4RotationMatrix(0,0,0);
+
+//Fiber
+G4double CoreR  = 460*um;
+G4double Clad1R = 490*um;
+G4double Clad2R = 500*um;
+G4double Phi  = 360*deg;
+
+//Calorimeter
+G4double Cx = 65.5*mm;
+G4double Cy = 116.5*mm;
+G4double Cz = 325.*mm;
+Cx = 21.833*mm;       // Cx/3
+Cy = 29.125*mm;       // Cy/4
+
+//Light Guide
+
+G4double LR1 = 36.40*mm;	//std::sqrt(Cx*Cx+Cy*Cy);
+G4double LR2 = 14.25*mm;	//Hamamatsu PMT
+G4double Lx1 = Cx;
+G4double Ly1 = Cy;
+G4double Lx2 = LR2;
+G4double Lz = 50.*mm;
+
+const G4int nPlane = 4;
+G4double scale = Lx2/Lx1;
+G4double zPlane[nPlane] = {-Lz, -Lz+10.*mm, Lz-10.*mm, Lz};
+G4double rInner[nPlane] = {0, 0, 0, 0};
+G4double rOuter[nPlane] = {LR1, LR1, LR2, LR2};
+
+std::vector<G4TwoVector> polygon;
+polygon.push_back( G4TwoVector( Lx1, Ly1) );
+polygon.push_back( G4TwoVector( Lx1,-Ly1) );
+polygon.push_back( G4TwoVector(-Lx1,-Ly1) );
+polygon.push_back( G4TwoVector(-Lx1, Ly1) );
+
+G4TwoVector offset(0,0);
+std::vector<G4ExtrudedSolid::ZSection> zsections;
+zsections.push_back( G4ExtrudedSolid::ZSection(zPlane[0], offset, 1) );
+zsections.push_back( G4ExtrudedSolid::ZSection(zPlane[1], offset, 1) );
+zsections.push_back( G4ExtrudedSolid::ZSection(zPlane[2], offset, scale) );
+zsections.push_back( G4ExtrudedSolid::ZSection(zPlane[3], offset, scale) );
+
+//World
+G4double Wx = Cx + Cx;
+G4double Wy = Cy + Cx;
+G4double Wz = Cz+2*Lz + Cx;
+
+//Construction-------------
+//World
+G4Box* pWorldSolid = new G4Box("WorldBox", Wx, Wy, Wz);
+G4LogicalVolume* pWorldLog = new G4LogicalVolume(pWorldSolid, Air, "WorldLogical");
+G4VPhysicalVolume* pWorldPhys = new G4PVPlacement(Id_rot, Id_tr, pWorldLog, "World", 0, false, 0);
+
+//Calorimeter
+G4Box* pCalSolid = new G4Box("CalorimeterBox", Cx, Cy, Cz);
+G4LogicalVolume* pCalLog = new G4LogicalVolume(pCalSolid, Lead, "CalorimeterLogical");
+new G4PVPlacement(Id_rot, Id_tr, pCalLog, "Calorimeter", pWorldLog, false, 0);
+
+//LightGuide
+G4ExtrudedSolid* pExSolid = new G4ExtrudedSolid("ExtSolid", polygon, zsections);
+G4Polycone*    pConeSolid = new G4Polycone("ConeSolid", 0.0, Phi, nPlane, zPlane, rInner, rOuter);
+G4IntersectionSolid* pLgSolid = new G4IntersectionSolid("Intersection", pExSolid, pConeSolid);
+G4LogicalVolume* pLGLog = new G4LogicalVolume(pLgSolid, Plexiglass, "LgLogical");
+
+//Fiber
+G4Tubs* pCoreSolid  = new G4Tubs("CoreTube" , 0, CoreR , Cz, 0, Phi);
+G4Tubs* pClad1Solid = new G4Tubs("Clad1Tube", 0, Clad1R, Cz, 0, Phi);
+G4Tubs* pClad2Solid = new G4Tubs("Clad2Tube", 0, Clad2R, Cz, 0, Phi);
+G4Tubs* pFiberSolid = new G4Tubs("FiberTube", 0, Clad2R, Cz, 0, Phi);
+
+G4LogicalVolume* pCoreLog  = new G4LogicalVolume(pCoreSolid, Polystyrene, "CoreLogical" );
+G4LogicalVolume* pClad1Log = new G4LogicalVolume(pClad1Solid, Plexiglass, "Clad1Logical");
+G4LogicalVolume* pClad2Log = new G4LogicalVolume(pClad2Solid, FluorAcry , "Clad2Logical");
+G4LogicalVolume* pFiberLog = new G4LogicalVolume(pFiberSolid, FluorAcry , "FiberLogical");
+
+new G4PVPlacement(Id_rot, Id_tr, pCoreLog , "Core"     , pClad1Log, false, 0);
+new G4PVPlacement(Id_rot, Id_tr, pClad1Log, "Cladding1", pClad2Log, false, 0);
+new G4PVPlacement(Id_rot, Id_tr, pClad2Log, "Cladding2", pFiberLog, false, 0);
+
+//Set Vis Attributes
+pWorldLog->SetVisAttributes (G4VisAttributes::GetInvisible());
+//pCoreLog->SetVisAttributes (G4VisAttributes::GetInvisible());
+//pClad1Log->SetVisAttributes (G4VisAttributes::GetInvisible());
+//pClad2Log->SetVisAttributes (G4VisAttributes::GetInvisible());
+pFiberLog->SetVisAttributes (G4VisAttributes::GetInvisible());
+
+//Sensitive Detectors_______________________________________________________
+
+BcalSD* pSD = new BcalSD("Bcal/SensitiveDetector",runAction);
+G4SDManager* sdm = G4SDManager::GetSDMpointer();
+/*
+G4Box* box = new G4Box("Box", Cx, Cy, 1.*mm);
+G4LogicalVolume* GlueLog = new G4LogicalVolume(box, Air,"GlueLayer");
+*/
+pLGLog->SetSensitiveDetector(pSD);
+sdm->AddNewDetector(pSD);
+
+G4RotationMatrix* rot = new G4RotationMatrix(0,pi*rad,0);
+new G4PVPlacement(Id_rot,G4ThreeVector(0, 0, Cz+Lz), pLGLog, "LGFront", pWorldLog, false, 0);
+new G4PVPlacement(rot,   G4ThreeVector(0, 0,-Cz-Lz), pLGLog, "LGRear",  pWorldLog, false, 0);
+
+//Optical Surfaces__________________________________________________________
+/*
+//Models
+G4OpticalSurface* OpDSurface = new G4OpticalSurface("DielectricSurface");
+OpDSurface->SetModel(unified);
+OpDSurface->SetType(dielectric_dielectric);
+OpDSurface->SetFinish(polished);
+
+G4OpticalSurface* OpMSurface = new G4OpticalSurface("MetalicSurface");
+OpMSurface->SetModel(unified);
+OpMSurface->SetType(dielectric_metal);
+OpMSurface->SetFinish(polished);
+
+//Surfaces
+new G4LogicalBorderSurface("CoreClad1",  pCorePhys,pClad1Phys,OpDSurface);
+new G4LogicalBorderSurface("Clad1Clad2",pClad1Phys,pClad2Phys,OpDSurface);
+new G4LogicalBorderSurface("CoreWorld",  pCorePhys,pWorldPhys,OpDSurface);
+new G4LogicalBorderSurface("Clad1World",pClad1Phys,pWorldPhys,OpDSurface);
+new G4LogicalBorderSurface("Clad2World",pClad2Phys,pWorldPhys,OpDSurface);
+new G4LogicalBorderSurface("LGFWorld1",pLgFrontPhys,pWorldPhys,OpDSurface);
+new G4LogicalBorderSurface("LGFWorld2",pWorldPhys,pLgFrontPhys,OpDSurface);
+new G4LogicalBorderSurface("LGRWorld1", pLgRearPhys,pWorldPhys,OpDSurface);
+new G4LogicalBorderSurface("LGRWorld2", pWorldPhys,pLgRearPhys,OpDSurface);
+
+
+//Fiber Surface
+new G4LogicalSkinSurface("LeadSurface", pClad2Log, OpMSurface);
+
+
+//Material Properties Table Attached to Optical Metalic Surface
+
+const G4int n = 2;
+G4double Ephoton[n] = {1*eV, 10*eV};
+G4double Reflect[n] = {0, 0};
+
+G4MaterialPropertiesTable *Op_mpt = new G4MaterialPropertiesTable();
+
+Op_mpt->AddProperty("REFLECTIVITY", Ephoton, Reflect, n);
+OpMSurface->SetMaterialPropertiesTable(Op_mpt);
+*/
+//Fiber Assembly Along X Axis_______________________________________________
+
+G4int i;
+G4double dx = 1.35*mm;
+G4ThreeVector pos_tr, neg_tr;
+//Condition: i*dx (fiber's center) <= Cx - FiberR
+G4double Limit_x = (Cx - Clad2R)/dx;
+
+
+G4AssemblyVolume* assembly1 = new G4AssemblyVolume(pFiberLog, Id_tr, Id_rot);
+for(i = 1; i <= Limit_x; i++){
+	pos_tr = G4ThreeVector( i*dx, 0, 0);
+	neg_tr = G4ThreeVector(-i*dx, 0, 0);
+	assembly1->AddPlacedVolume(pFiberLog, pos_tr, Id_rot);
+	assembly1->AddPlacedVolume(pFiberLog, neg_tr, Id_rot);
+
+}
+
+//Condition: i*dx - dx/2 (fiber's center) <= Cx - FiberR
+Limit_x = (Cx - Clad2R)/dx + 0.5; 
+G4AssemblyVolume* assembly2 = new G4AssemblyVolume();
+for(i = 1; i <= Limit_x; i++){
+
+	pos_tr = G4ThreeVector(i*dx - dx/2, 0, 0);
+	neg_tr = G4ThreeVector(dx/2 - i*dx, 0, 0);
+	assembly2->AddPlacedVolume(pFiberLog, pos_tr, Id_rot);
+	assembly2->AddPlacedVolume(pFiberLog, neg_tr, Id_rot);
+
+}
+
+//Fiber Assembly Along Y Axis_________________________________________________
+
+G4double dy = 1.293*mm;
+//Condition: i*2*dy <= Cy - dy
+G4double Limit_y = (Cy - dy)/(2*dy);
+
+assembly1->MakeImprint(pCalLog, Id_tr, Id_rot);
+for(i = 1; i <= Limit_y; i++){
+
+	pos_tr = G4ThreeVector(0, i*2*dy, 0);
+	neg_tr = G4ThreeVector(0,-i*2*dy, 0);
+	assembly1->MakeImprint(pCalLog, pos_tr, Id_rot);
+	assembly1->MakeImprint(pCalLog, neg_tr, Id_rot);
+}
+
+//i*2*dy - dy <= Cy - dy
+Limit_y = Cy/(2*dy);
+
+for(i = 1; i <= Limit_y; i++){
+
+	pos_tr = G4ThreeVector(0, (2*i - 1)*dy, 0);
+	neg_tr = G4ThreeVector(0, (1 - 2*i)*dy, 0);
+	assembly2->MakeImprint(pCalLog, pos_tr, Id_rot);
+	assembly2->MakeImprint(pCalLog, neg_tr, Id_rot);
+}
+
+
+//_____________________________________________________________________________
+
+
+return pWorldPhys;
+
+}

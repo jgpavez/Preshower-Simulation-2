@@ -1,0 +1,65 @@
+
+#include "globals.hh"
+#include "BcalSD.hh"
+#include "BcalTrackInformation.hh"
+
+#include "G4OpticalPhoton.hh"
+#include "G4Positron.hh"
+#include "G4MuonPlus.hh"
+#include "G4ThreeVector.hh"
+
+
+BcalSD::BcalSD(const G4String& name, BcalRunAction* runaction) 
+	: G4VSensitiveDetector(name),
+	  runAction(runaction),
+	  energy(0),
+	  pos(G4ThreeVector(0,0,0)),
+	  mom(G4ThreeVector(0,0,0)),
+	  point1(0),
+	  point2(0),
+	  primary(0)
+	  
+{
+	opPhoton = G4OpticalPhoton::OpticalPhoton();
+	muonPlus = G4MuonPlus::MuonPlus();
+	positron = G4Positron::Positron();
+}
+
+BcalSD::~BcalSD() {}
+
+void BcalSD::Initialize(G4HCofThisEvent*){}
+
+G4bool BcalSD::ProcessHits(G4Step* step, G4TouchableHistory*){ 
+
+	if(step->GetTrack()->GetDefinition() == opPhoton){
+
+		//Photons Entering The LightGuide
+		point1 = step->GetPreStepPoint();
+		pos   = point->GetPosition();
+		mom   = point->GetMomentumDirection();
+		if(std::abs(pos(2)) == 325*mm && pos(2)*mom(2)>0){
+			(runAction->entering)++;
+			energy   = point->GetKineticEnergy();
+			primary = ((BcalTrackInformation*)step->GetTrack()->GetUserInformation())->GetOriginalParticle();
+			if(primary == muonPlus){
+				runAction->H1Muon->Fill(energy/eV);
+				runAction->H1Angle->Fill(mom.theta());
+			}
+			if(primary == positron){
+				runAction->H1Positron->Fill(energy/eV);
+				runAction->H1Angle->Fill(mom.theta());
+			}
+		}
+		
+		//Photons Leaving The LightGuide
+		point2 = step->GetPostStepPoint();
+		pos   = point2->GetPosition();
+		mom   = point2->GetMomentumDirection();
+		if(std::abs(pos(2)) == 425*mm && pos(2)*mom(2)>0) (runAction->leaving)++;
+
+	}
+	return true;
+}
+
+void BcalSD::EndOfEvent(G4HCofThisEvent*){}
+

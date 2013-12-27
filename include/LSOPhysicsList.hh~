@@ -1,0 +1,28 @@
+#ifndef BcalPhysicsList_h 
+#define BcalPhysicsList_h 1
+
+#include "G4VUserPhysicsList.hh"
+
+class BcalPhysicsList: public G4VUserPhysicsList
+{
+
+public:
+
+	BcalPhysicsList();
+	~BcalPhysicsList();
+
+private:
+
+	void ConstructParticle();
+	void ConstructProcess();
+	void SetCuts();
+
+	void ConstructEM();
+	void ConstructDecay();
+	void ConstructOp();
+	void ConstructScintillation();
+	void ConstructCerenkov();
+
+};
+
+#endif

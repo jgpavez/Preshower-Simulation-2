@@ -1,0 +1,31 @@
+
+#include "globals.hh"
+#include "RunAction.hh"
+#include "G4Run.hh"
+
+
+
+RunAction::RunAction() 
+	: G4UserRunAction(),
+	  tuple(0),
+	  file(0)
+{}
+
+RunAction::~RunAction()
+{}
+
+void RunAction::BeginOfRunAction(const G4Run* run)
+{
+	G4cout<<"Run "<<run->GetRunID()<<" start."<<G4endl;
+
+	file = new TFile("detector.root","RECREATE");
+	tuple = new TNtupleD("tuple","Detector Tuple","eneDep:sliceX:sliceY");
+}
+
+void RunAction::EndOfRunAction(const G4Run* run)
+{
+	G4cout<<"Run "<<run->GetRunID()<<" done."<<G4endl;
+	
+	tuple->Write();
+  	file->Close();
+}

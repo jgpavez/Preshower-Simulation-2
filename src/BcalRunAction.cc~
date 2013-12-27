@@ -1,0 +1,85 @@
+
+#include "globals.hh"
+#include "BcalRunAction.hh"
+#include "G4UnitsTable.hh"
+#include "G4Run.hh"
+#include "G4RunManager.hh"
+#include "TFile.h"
+#include "TH1.h"
+#include "TH2.h"
+
+BcalRunAction::BcalRunAction() 
+	: G4UserRunAction(),
+	  H1Muon(0),
+	  H1Positron(0),
+	  H1Angle(0),
+	  H1VEnergy(0),
+	  H2VPosition(0),
+	  H2VMomentum(0),
+	  entering(0),
+	  leaving(0),
+	  file(0),
+	  nBin(0),
+	  eneMin(0),
+	  eneMax(0)
+{}
+
+BcalRunAction::~BcalRunAction()
+{}
+
+void BcalRunAction::BeginOfRunAction(const G4Run* run)
+{
+
+	G4cout << "Run " << run->GetRunID() << " start..." << G4endl;
+
+	nBin = 100;
+	eneMin = 1;
+	eneMax = 3.5;
+	file  = new TFile("Bcal.root","RECREATE");
+
+	H1Muon	   = new TH1D("Muon",    "Photon Energy for Muon Primary ",     nBin, eneMin, eneMax);
+	H1Positron = new TH1D("Positron","Photon Energy for Positron Primary ", nBin, eneMin, eneMax);
+	H1Angle    = new TH1D("Angle", "Photon Angle",100, 0, halfpi);
+	H1VEnergy   = new TH1D("Energy","Vertex Energy Distribution",nBin,10,100);
+	H2VPosition = new TH2D("Position","Vertex Position Distribution",100,-16,16,100,-325,325);
+	H2VMomentum = new TH2D("Momentum","Vertex Momentum Distribution",100,std::sqrt(2)/2,1,100,-pi,pi);
+		
+
+}
+
+void BcalRunAction::EndOfRunAction(const G4Run* run)
+{
+
+	G4cout << "Run " << run->GetRunID() << " done..." << G4endl;
+	G4cout << "Histograms Statistics:\n" << G4endl;
+	G4cout << "Particle\tEntries\tMean\tRMS\tPeak\tPeakEnergy" << G4endl;
+
+	G4cout  << "Muon\t"
+	        << H1Muon->GetEntries() <<"\t"
+		<< H1Muon->GetMean() <<"\t"
+		<< H1Muon->GetRMS() <<"\t"
+		<< H1Muon->GetMaximum() << "\t"
+		<<(H1Muon->GetMaximumBin()-0.5)*(eneMax-eneMin)/nBin+eneMin <<" eV"<< G4endl;
+
+	G4cout  << "Positron\t"
+		<< H1Positron->GetEntries() <<"\t"
+		<< H1Positron->GetMean() <<"\t"
+		<< H1Positron->GetRMS() <<"\t"
+		<< H1Positron->GetMaximum() <<"\t"
+		<<(H1Positron->GetMaximumBin()-0.5)*(eneMax-eneMin)/nBin+eneMin <<" eV"<< G4endl;
+
+	G4cout << "Photons Entering the LG: "<< entering << G4endl;
+	G4cout << "Photons Leaving the LG : "<< leaving  << G4endl;
+	G4cout << "Ratio: " << leaving/entering << G4endl;
+
+
+	H1Muon     ->Write();
+	H1Positron ->Write();
+	H1Angle    ->Write();
+	H1VEnergy  ->Write();
+	H2VPosition->Write();
+	H2VMomentum->Write();
+
+  	file->Close();
+
+}

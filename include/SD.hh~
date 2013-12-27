@@ -1,0 +1,28 @@
+#ifndef SD_h
+#define SD_h 1
+
+#include "G4VSensitiveDetector.hh"
+#include "Hit.hh"
+#include "G4StepPoint.hh"
+#include "G4ThreeVector.hh"
+#include "G4HCofThisEvent.hh"
+
+class SD : public G4VSensitiveDetector
+{
+
+public:
+	SD(const G4String&, const G4String&);
+	~SD();
+  
+	void	Initialize(G4HCofThisEvent*);
+	G4bool	ProcessHits(G4Step*, G4TouchableHistory*);
+	void	EndOfEvent(G4HCofThisEvent*);
+
+private:
+	G4StepPoint* point;
+	HitsCollection* hitsCollection;	
+	G4double energy;
+	G4ThreeVector pos;
+};
+
+#endif

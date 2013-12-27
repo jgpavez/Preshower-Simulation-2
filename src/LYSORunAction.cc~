@@ -1,0 +1,35 @@
+
+#include "globals.hh"
+#include "LYSORunAction.hh"
+#include "G4Run.hh"
+#include "TFile.h"
+#include "TNtupleD.h"
+
+LYSORunAction::LYSORunAction() 
+	: G4UserRunAction(),
+	  tuple(0),
+	  event(0),
+	  file(0)
+{}
+
+LYSORunAction::~LYSORunAction()
+{}
+
+void LYSORunAction::BeginOfRunAction(const G4Run* run)
+{
+	G4cout<<"Run "<<run->GetRunID()<<" start."<<G4endl;
+	
+	file = new TFile("LYSO.root","RECREATE" );
+	tuple = new TNtupleD("Tuple","Data Tuple","event:energy");
+	 
+}
+
+void LYSORunAction::EndOfRunAction(const G4Run* run)
+{
+
+	G4cout<<"Run "<<run->GetRunID()<<" done."<<G4endl;
+	tuple->Write("Tuple");
+	delete  tuple;
+  	file->Close();
+
+}

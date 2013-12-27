@@ -1,0 +1,167 @@
+
+#include "globals.hh"
+#include "BcalPhysicsList.hh"
+#include "G4ParticleTypes.hh"
+#include "G4ProcessManager.hh"
+#include "G4PhysicsListHelper.hh"
+
+#include "G4ComptonScattering.hh"
+#include "G4GammaConversion.hh"
+#include "G4PhotoElectricEffect.hh"
+#include "G4GammaConversionToMuons.hh"
+
+#include "G4eMultipleScattering.hh"
+#include "G4eIonisation.hh"
+#include "G4eBremsstrahlung.hh"
+#include "G4eplusAnnihilation.hh"
+#include "G4AnnihiToMuPair.hh"
+
+#include "G4MuMultipleScattering.hh"
+#include "G4MuIonisation.hh"
+#include "G4MuBremsstrahlung.hh"
+#include "G4MuPairProduction.hh"
+
+#include "G4Decay.hh"
+#include "G4DecayTable.hh"
+#include "BcalMuonDecayChannel.hh"
+
+#include "G4OpAbsorption.hh"
+#include "G4OpRayleigh.hh"
+#include "G4OpBoundaryProcess.hh"
+
+#include "G4Scintillation.hh"
+#include "G4LossTableManager.hh"
+#include "G4EmSaturation.hh"
+
+
+
+BcalPhysicsList::BcalPhysicsList()
+{}
+
+BcalPhysicsList::~BcalPhysicsList()
+{}
+
+void BcalPhysicsList::ConstructParticle()
+{
+
+	//Mu+ Decay: Mu+ -> e+ + NeutrinoE + AntiNeutrinoMu
+	//Mu- Decay: Mu- -> e- + AntiNeutrinoE + NeutrinoMu
+
+	G4Gamma::GammaDefinition();
+	G4Electron::ElectronDefinition();
+	G4Positron::PositronDefinition();
+	G4MuonPlus::MuonPlusDefinition();
+	G4MuonMinus::MuonMinusDefinition();
+	G4NeutrinoE::NeutrinoEDefinition();
+	G4AntiNeutrinoMu::AntiNeutrinoMuDefinition();
+	G4OpticalPhoton::OpticalPhotonDefinition();
+
+}
+
+void BcalPhysicsList::ConstructProcess()
+{
+
+	AddTransportation();
+	ConstructEM();
+	ConstructDecay();
+	ConstructOp();
+	ConstructScintillation();
+
+}
+
+void BcalPhysicsList::ConstructEM()
+{
+
+	G4PhysicsListHelper* helper = G4PhysicsListHelper::GetPhysicsListHelper();
+	G4ParticleDefinition* particle;
+
+	//Gamma 
+	particle = G4Gamma::Gamma();
+	helper->RegisterProcess(new G4GammaConversion(), particle);     
+	helper->RegisterProcess(new G4ComptonScattering(), particle);  
+	helper->RegisterProcess(new G4PhotoElectricEffect(), particle);
+	helper->RegisterProcess(new G4GammaConversionToMuons(), particle);
+
+	//Electron
+	particle = G4Electron::Electron(); 
+	helper->RegisterProcess(new G4eIonisation(), particle);
+	helper->RegisterProcess(new G4eBremsstrahlung(), particle);  
+	helper->RegisterProcess(new G4eMultipleScattering(), particle);    
+
+	//Positron
+	particle = G4Positron::Positron(); 
+	helper->RegisterProcess(new G4eIonisation(), particle);
+	helper->RegisterProcess(new G4eBremsstrahlung(), particle);
+	helper->RegisterProcess(new G4eMultipleScattering(), particle);
+	helper->RegisterProcess(new G4eplusAnnihilation(), particle);
+    
+	//MuonPlus
+	particle = G4MuonPlus::MuonPlus();   
+	helper->RegisterProcess(new G4MuIonisation(), particle);
+	helper->RegisterProcess(new G4MuBremsstrahlung(), particle);
+	helper->RegisterProcess(new G4MuPairProduction(), particle);
+	helper->RegisterProcess(new G4MuMultipleScattering(), particle);
+
+	//MuonMinus
+	particle = G4MuonMinus::MuonMinus();   
+	helper->RegisterProcess(new G4MuIonisation(), particle);
+	helper->RegisterProcess(new G4MuBremsstrahlung(), particle);
+	helper->RegisterProcess(new G4MuPairProduction(), particle);
+	helper->RegisterProcess(new G4MuMultipleScattering(), particle);
+
+     
+}
+
+void BcalPhysicsList::ConstructDecay()
+{
+/*	
+	//Test Decay Mode for Muon
+	G4DecayTable* DecayTable = new G4DecayTable();
+	G4VDecayChannel* mode = new BcalMuonDecayChannel("mu+",1);
+	DecayTable->Insert(mode);
+
+	G4ParticleDefinition* MuonPlus = G4MuonPlus::MuonPlus();
+	MuonPlus->SetDecayTable(DecayTable);
+*/	
+	G4Decay* decay = new G4Decay();
+	G4PhysicsListHelper* helper = G4PhysicsListHelper::GetPhysicsListHelper();
+	helper->RegisterProcess(decay, MuonPlus);
+
+}
+
+void BcalPhysicsList::ConstructOp()
+{
+
+	G4PhysicsListHelper* helper = G4PhysicsListHelper::GetPhysicsListHelper();
+
+	G4ParticleDefinition* OpPhoton = G4OpticalPhoton::OpticalPhoton();
+	helper->RegisterProcess(new G4OpBoundaryProcess(), OpPhoton);
+	helper->RegisterProcess(new G4OpAbsorption(), OpPhoton);
+	helper->RegisterProcess(new G4OpRayleigh(), OpPhoton);
+
+}
+
+void BcalPhysicsList::ConstructScintillation()
+{
+
+	G4Scintillation* Scint = new G4Scintillation("Scintillation");
+	Scint->SetTrackSecondariesFirst(true);
+
+//	G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();
+//	Scint->AddSaturation(emSaturation);
+
+	G4PhysicsListHelper* helper = G4PhysicsListHelper::GetPhysicsListHelper();
+	theParticleIterator->reset();
+	while( (*theParticleIterator)() ){
+		G4ParticleDefinition* particle = theParticleIterator->value();
+		if(Scint->IsApplicable(*particle)) helper->RegisterProcess(Scint, particle);
+	}
+
+}
+
+void BcalPhysicsList::SetCuts()
+{
+
+	SetCutsWithDefault();
+
+}

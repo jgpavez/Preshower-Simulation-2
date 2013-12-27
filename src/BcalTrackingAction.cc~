@@ -1,0 +1,48 @@
+
+#include "BcalTrackingAction.hh"
+#include "BcalTrackInformation.hh"
+#include "G4TrackingManager.hh"
+#include "G4Track.hh"
+#include "G4TrackVector.hh"
+#include "G4MuonPlus.hh"
+#include "G4Positron.hh"
+#include "G4OpticalPhoton.hh"
+#include "G4ThreeVector.hh"
+#include "G4VProcess.hh"
+
+BcalTrackingAction::BcalTrackingAction() 
+		   : particle(0)
+{
+	muonPlus = G4MuonPlus::MuonPlus();
+	positron = G4Positron::Positron();
+}
+
+BcalTrackingAction::~BcalTrackingAction()
+{}
+
+void BcalTrackingAction::PreUserTrackingAction(const G4Track* aTrack){
+
+	particle = aTrack->GetDefinition();
+	if(particle==muonPlus || particle==positron){
+		BcalTrackInformation* anInfo = new BcalTrackInformation(aTrack);
+		G4Track* theTrack = (G4Track*)aTrack;
+		theTrack->SetUserInformation(anInfo);
+	}
+}
+
+void BcalTrackingAction::PostUserTrackingAction(const G4Track* aTrack){
+
+	G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
+	if(secondaries){
+		BcalTrackInformation* info = (BcalTrackInformation*)(aTrack->GetUserInformation());
+		size_t nSeco = secondaries->size();
+		if(nSeco>0){
+			for(size_t i=0;i<nSeco;i++){ 
+				BcalTrackInformation* infoNew = new BcalTrackInformation(info);
+				(*secondaries)[i]->SetUserInformation(infoNew);
+			}
+		}
+	}
+}
+
+

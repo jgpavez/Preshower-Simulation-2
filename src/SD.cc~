@@ -1,0 +1,54 @@
+
+#include "SD.hh"
+#include "Hit.hh"
+#include "G4Event.hh"
+#include "G4EventManager.hh"
+#include "G4OpticalPhoton.hh"
+#include "G4SDManager.hh"
+#include "G4StepPoint.hh"
+
+SD::SD(const G4String& name, const G4String& hitsCName) 
+	: G4VSensitiveDetector(name),
+	  point(NULL),
+	  hitsCollection(NULL),
+	  energy(0),
+	  pos(G4ThreeVector())
+{
+	  collectionName.insert(hitsCName);
+}
+
+SD::~SD()
+{}
+
+void SD::Initialize(G4HCofThisEvent* hce){
+
+	hitsCollection = new HitsCollection(SensitiveDetectorName,collectionName[0]);
+	G4int hcID = G4SDManager::GetSDMpointer()->GetCollectionID(collectionName[0]);
+	hce->AddHitsCollection(hcID, hitsCollection); 
+}
+
+G4bool SD::ProcessHits(G4Step* step, G4TouchableHistory*){ 
+
+	point  = step->GetPreStepPoint();
+	pos    = point->GetPosition();
+	energy = point->GetKineticEnergy();
+
+	Hit* hit = new Hit(energy,pos);	
+	hit->Draw();
+	hitsCollection->insert(hit);
+
+	return true;
+}
+
+void SD::EndOfEvent(G4HCofThisEvent*){
+
+	G4int nHits = hitsCollection->entries();
+	G4double tEnergy = 0;
+
+	G4EventManager* eManager = G4EventManager::GetEventManager();
+	G4int event = eManager->GetNonconstCurrentEvent()->GetEventID();
+
+	for(G4int i=0; i<nHits; i++ ) tEnergy += (*hitsCollection)[i]->getEnergy();
+	G4cout<<"Event: "<<event<<"\tHits: "<<nHits<<"\tEnergy: "<<tEnergy/eV<<" eV"<<G4endl;
+}
+

@@ -1,0 +1,35 @@
+
+#include "globals.hh"
+#include "BcalEventAction.hh"
+#include "G4PrimaryVertex.hh"
+#include "G4PrimaryParticle.hh"
+#include "G4ThreeVector.hh"
+
+BcalEventAction::BcalEventAction(BcalRunAction* run)
+		:runAction(run)
+{} 
+
+BcalEventAction::~BcalEventAction()
+{}
+
+void BcalEventAction::BeginOfEventAction(const G4Event* anEvent)
+{  
+	G4cout<<"Event "<< anEvent->GetEventID() <<"..."<<G4endl;
+	
+	G4PrimaryVertex* theVertex = anEvent->GetPrimaryVertex();
+	G4PrimaryParticle* thePrimary = theVertex->GetPrimary();
+
+	G4ThreeVector pos = theVertex->GetPosition();
+	G4double      ene = thePrimary->GetKineticEnergy();
+	G4ThreeVector mom = thePrimary->GetMomentumDirection();
+	mom.rotateX(-halfpi*rad);
+
+	runAction->GetHist3()->Fill(ene/MeV);
+	runAction->GetHist4()->Fill(pos.x()/mm,pos.z()/mm);
+	runAction->GetHist5()->Fill(mom.cosTheta(),mom.phi()/rad);
+
+}
+
+void BcalEventAction::EndOfEventAction(const G4Event*) 
+{}  
+

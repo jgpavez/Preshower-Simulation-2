@@ -1,0 +1,38 @@
+#ifndef BcalSD_h
+#define BcalSD_h 1
+
+#include "globals.hh"
+#include "BcalRunAction.hh"
+
+#include "G4VSensitiveDetector.hh"
+#include "G4StepPoint.hh"
+#include "G4StepStatus.hh"
+#include "G4Track.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4HCofThisEvent.hh"
+
+class BcalSD : public G4VSensitiveDetector
+{
+
+public:
+	BcalSD(const G4String&, BcalRunAction*);
+	~BcalSD();
+  
+	void   Initialize(G4HCofThisEvent*);
+	G4bool ProcessHits(G4Step*, G4TouchableHistory*);
+	void   EndOfEvent(G4HCofThisEvent*);
+
+private:
+	BcalRunAction* runAction;
+	G4double    energy;
+	G4ThreeVector  pos;
+	G4ThreeVector  mom;
+	G4StepPoint* point1;
+	G4StepPoint* point2;	
+	G4ParticleDefinition*  primary;
+	G4ParticleDefinition* opPhoton;
+	G4ParticleDefinition* positron;
+	G4ParticleDefinition* muonPlus;
+};
+
+#endif

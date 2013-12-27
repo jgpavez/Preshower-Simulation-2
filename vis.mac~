@@ -1,0 +1,49 @@
+#/control/verbose 2
+#/run/verbose 2
+#/run/initialize
+
+#Create an OpenGL view:
+/vis/open OGL 1024x768-0+0
+
+# Disable auto refresh and quieten vis messages whilst scene and
+# trajectories are established:
+/vis/viewer/set/autoRefresh false
+/vis/verbose errors
+
+# Specify view angle:
+/vis/viewer/set/viewpointThetaPhi 30 30 deg
+
+# Set Style of drawing
+#/vis/viewer/set/style surface
+#/vis/viewer/set/hiddenEdge true
+
+# Draw geometry:
+/vis/drawVolume
+
+# Draw coordinate axes:
+#/vis/scene/add/axes 0 0 0 50 mm
+
+# Draw trajectories at end of event.
+# Add "smooth" or "rich" to change viewing details
+/vis/scene/add/trajectories
+
+# To draw only gammas:
+#/vis/filtering/trajectories/create/particleFilter
+#/vis/filtering/trajectories/particleFilter-0/add gamma
+
+# To invert the above, drawing all particles except gammas,
+# keep the above two lines but also add:
+#/vis/filtering/trajectories/particleFilter-0/invert true
+
+#Select colour by particle ID:
+/vis/modeling/trajectories/create/drawByParticleID
+/vis/modeling/trajectories/drawByParticleID-0/set e- red
+/vis/modeling/trajectories/drawByParticleID-0/set e+ green 
+/vis/modeling/trajectories/drawByParticleID-0/set gamma magenta
+/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton yellow
+
+#Superimpose all of the events from a given run:
+#/vis/scene/endOfEventAction accumulate
+
+# Re-establish auto refreshing:
+/vis/viewer/set/autoRefresh true

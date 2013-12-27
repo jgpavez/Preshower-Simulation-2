@@ -1,0 +1,22 @@
+#ifndef BcalGeometry_h
+#define BcalGeomerty_h 1
+
+#include "G4VUserDetectorConstruction.hh"
+#include "BcalRunAction.hh"
+#include "G4VPhysicalVolume.hh"
+
+class BcalGeometry : public G4VUserDetectorConstruction
+{
+
+public:
+	BcalGeometry(BcalRunAction*);	
+	~BcalGeometry();
+	G4VPhysicalVolume* Construct();
+	void SetRunAction(BcalRunAction*);
+	
+private:
+	BcalRunAction* runAction;
+
+};
+
+#endif

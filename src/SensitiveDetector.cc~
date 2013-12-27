@@ -1,0 +1,48 @@
+
+#include "SensitiveDetector.hh"
+#include "Hits.hh"
+#include "RunAction.hh"
+#include "G4Event.hh"
+#include "G4RunManager.hh"
+#include "G4EventManager.hh"
+#include "G4OpticalPhoton.hh"
+#include "G4SDManager.hh"
+#include "G4StepPoint.hh"
+#include "G4ios.hh"
+#include "Analysis.hh"
+
+
+SensitiveDetector::SensitiveDetector(const G4String& name, const G4String& hitsCName) 
+	: G4VSensitiveDetector(name),
+	  point(0),
+	  hitsCollection(0),
+	  slice(0),
+	  energy(0),
+	  pos(G4ThreeVector())
+{
+	  collectionName.insert(hitsCName);
+}
+
+SensitiveDetector::~SensitiveDetector()
+{}
+
+void SensitiveDetector::Initialize(G4HCofThisEvent*)
+{}
+
+G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*){ 
+
+	slice = step->GetPreStepPoint()->GetTouchableHandle()->GetReplicaNumber();
+	energy = step->GetTotalEnergyDeposit();
+	pos = step->GetPreStepPoint()->GetPosition();
+
+	G4RunManager* runManager = G4RunManager::GetRunManager();
+	RunAction* runAction = (RunAction*)runManager->GetUserRunAction();
+	runAction->tuple->Fill(energy,pos(0),pos(1),slice);
+
+	return true;
+
+}
+
+void SensitiveDetector::EndOfEvent(G4HCofThisEvent*)
+{}
+
