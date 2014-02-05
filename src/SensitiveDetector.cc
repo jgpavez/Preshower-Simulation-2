@@ -37,24 +37,26 @@ G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*){
 //	G4RunManager* runManager = G4RunManager::GetRunManager();
 //	RunAction* runAction = (RunAction*)runManager->GetUserRunAction();
 
-	//slice = step->GetPreStepPoint()->GetTouchableHandle()->GetReplicaNumber();
-	slice = 0;
+	G4TouchableHandle tHandle = step->GetPreStepPoint()->GetTouchableHandle();
+	G4String rName = tHandle->GetVolume()->GetName();
+	G4int slice = tHandle->GetReplicaNumber();
+	G4int axis;
+	if (rName == "RO_X") axis = 0;
+	else{
+ 		if (rName == "RO_Y") axis = 1;
+		else{
+			axis = -1;
+			G4cout << "******** Readout error ********** " << G4endl;
+		}
+	}
 	energy = 0.;
-	//slice = step->GetPreStepPoint()->GetTouchableHandle()->GetReplicaNumber(0);
-	sliceY = step->GetPreStepPoint()->GetTouchableHandle()->GetReplicaNumber(1);
-	sliceX = step->GetPreStepPoint()->GetTouchableHandle()->GetReplicaNumber(0);
 	if ( step->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhoton()){
 		//energy = step->GetTotalEnergyDeposit();
 		energy = 1.;
 	}
 
-
-	energyArray[sliceX][sliceY] += energy;
-	//pos = step->GetPreStepPoint()->GetPosition();
-	//if (pos.getZ() > (225.*mm - 45*mm*0/4) && pos.getZ() <  (225.*mm - 45*mm*1/4) ) slice = 0;
-	//if (pos.getZ() > (225.*mm - 45*mm*1/4) && pos.getZ() <  (225.*mm - 45*mm*2/4) ) slice = 1;
-	//if (pos.getZ() > (225.*mm - 45*mm*2/4) && pos.getZ() <  (225.*mm - 45*mm*3/4) ) slice = 2;
-	//if (pos.getZ() > (225.*mm - 45*mm*3/4) && pos.getZ() <  (225.*mm - 45*mm*4/4) ) slice = 3;
+	if (axis >= 0)
+		energyArray[axis][slice] += energy;
 	return true;
 
 }
@@ -65,12 +67,11 @@ void SensitiveDetector::EndOfEvent(G4HCofThisEvent*)
 	RunAction* runAction = (RunAction*)runManager->GetUserRunAction();
 
 	energy = 0.;
-	for (int i = 0; i < 25; i++){
+	for (int i = 0; i < 2; i++){
 		for (int j = 0; j < 25; j++){
 			runAction->tuple->Fill(energyArray[i][j], i, j);
 			energyArray[i][j] = 0.;
 		}
 	}
-
 }
 

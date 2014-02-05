@@ -19,7 +19,7 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 	G4cout<<"Run "<<run->GetRunID()<<" start."<<G4endl;
 
 	file = new TFile("detector.root","RECREATE");
-	tuple = new TNtupleD("tuple","Detector Tuple","eneDep:sliceX:sliceY");
+	tuple = new TNtupleD("tuple","Detector Tuple","eneDep:axis:slice");
 }
 
 void RunAction::EndOfRunAction(const G4Run* run)

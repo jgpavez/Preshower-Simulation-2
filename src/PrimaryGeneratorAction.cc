@@ -14,7 +14,9 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
 	particleGun = new G4ParticleGun(n_particle);
 	particleGun->SetParticleDefinition(G4Gamma::Gamma());
 	particleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., -1.));
+
 	particleGun->SetParticleEnergy(511.*keV);
+
 	particleGun->SetParticlePosition(G4ThreeVector(0., 0., 20*1.125*cm + 1*mm));
 
 }
@@ -29,6 +31,10 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* Event)
 {
 	
+	//particleGun->SetParticlePosition(G4ThreeVector(8.4*mm, 0., 20*1.125*cm + 1*mm));
+	//particleGun->GeneratePrimaryVertex(Event);
+
+	//particleGun->SetParticlePosition(G4ThreeVector(-8.4*mm, 0., 20*1.125*cm + 1*mm));
 	particleGun->GeneratePrimaryVertex(Event);
 
 }

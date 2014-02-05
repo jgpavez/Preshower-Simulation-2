@@ -26,7 +26,7 @@ private:
 	G4int sliceY;
 	G4int sliceX;
 	G4double energy;
-	G4double energyArray[25][25];
+	G4double energyArray[2][25];
 	G4ThreeVector pos;
 };
 
