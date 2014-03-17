@@ -413,12 +413,22 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	G4double Fz = Clad2R + Tol;
  	
 	//Readout Geometry
-    	G4double ROh = 1.45*mm;
+    	G4double ROh = 4.0*mm;
     	G4double ROw = Px;
-    	G4double ROd = Platez;
+    	G4double ROd = 1.5*mm;
 
  	//Readout Division
- 	G4double RODiv = ROw/nx;
+ 	G4double RODiv = 1.5*mm;
+
+	//MPPC Geometry
+    	G4double MPPCh = 1.0*mm;
+    	G4double MPPCw = Px;
+    	G4double MPPCd = 1.5*mm;
+
+ 	//MPPC Division
+ 	G4double MPPCDiv = 1.5*mm;
+
+
 
 	//Cover Geometry
 	G4double Cox = 5*mm;
@@ -434,6 +444,19 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	G4double Ux = 4.5*mm;
 	G4double Uy = 0.5*mm;
 	G4double Uz = 21*mm; 
+
+	// Pre Readout
+	G4double pRx = Platex;
+	G4double pRy = 5.*mm;
+	G4double pRz = 3.375*mm;
+
+	G4double CRx = 58.5*mm;
+	G4double CRy = 10.5*mm;
+	G4double CRz = 20.15*mm;
+
+	// ReadoutCover
+	G4double zCGap = 5.0*mm;
+
 
 	G4ThreeVector Id_tr(0.,0.,0.);
 	G4RotationMatrix* Id_rot = new G4RotationMatrix(0.,0.,0.);
@@ -455,7 +478,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	//Preshower
 	G4Box* pPreSolid = new G4Box("PreBox", Px, Py, Pz);
 	G4LogicalVolume* pPreLog = new G4LogicalVolume(pPreSolid, Air, "PreLogical");
-	G4PVPlacement*  pPrePhys = new G4PVPlacement(Id_rot, G4ThreeVector(0.,0.,Dz-2*FCz-Pz-2*Platez), pPreLog, "Preshower", pDetLog, false, 0);
+	G4PVPlacement*  pPrePhys = new G4PVPlacement(Id_rot, G4ThreeVector(0.,0.,Dz-2*FCz-Pz-2*Platez - (pRz - Platez) - zCGap), pPreLog, "Preshower", pDetLog, false, 0);
 	pPreLog->SetVisAttributes(G4VisAttributes(true, G4Colour::Blue()));
 
 	G4Box* pXDivSolid = new G4Box("XSegmentBox", Sx, Py, Pz);
@@ -479,74 +502,74 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	//Cover Geometry
 	G4Box* pBackCover = new G4Box("backCover", Px+2*Cox, Py+2*Cox, 2.5*mm);
 	G4LogicalVolume* pBackCoverLog = new G4LogicalVolume(pBackCover,Al, "backCoverLogical");
-	G4PVPlacement* pBackCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(0., 0.,Dz-2*FCz-2*Pz-2*Platez-2.5*mm), pBackCoverLog, "CoverBack", pDetLog,false,0);
+	G4PVPlacement* pBackCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(0., 0.,Dz-2*FCz-2*Pz-2*Platez-2.5*mm - (pRz - Platez) - zCGap), pBackCoverLog, "CoverBack", pDetLog,false,0);
 	pBackCoverLog->SetVisAttributes(G4VisAttributes(true, G4Colour::Grey()));
 	
 	G4Box* pRightCover = new G4Box("rightCover", Cox, Coy + Cox - Uy, Coz);
 	G4LogicalVolume* pRightCoverLog = new G4LogicalVolume(pRightCover,StainlessSteel,"rightCoverLogical");
-	G4PVPlacement* pRightCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(Px + Cox, -Cox-Uy,Dz-2*FCz-Pz-2*Platez-CozGap), pRightCoverLog, "CoverRight", pDetLog, false, 0);
+	G4PVPlacement* pRightCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(Px + Cox, -Cox-Uy,Dz-2*FCz-Pz-2*Platez-CozGap- (pRz - Platez) - zCGap), pRightCoverLog, "CoverRight", pDetLog, false, 0);
 	pRightCoverLog->SetVisAttributes(G4VisAttributes(true, G4Colour::Grey()));
 
 	G4Box* pLeftCover = new G4Box("leftCover", Cox, Coy + Cox - Uy, Coz);
 	G4LogicalVolume* pLeftCoverLog = new G4LogicalVolume(pLeftCover,StainlessSteel,"leftCoverLogical");
-	G4PVPlacement* pLeftCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(-Px - Cox, -Cox-Uy,Dz-2*FCz-Pz-2*Platez-CozGap), pLeftCoverLog, "CoverLeft", pDetLog, false, 0);
+	G4PVPlacement* pLeftCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(-Px - Cox, -Cox-Uy,Dz-2*FCz-Pz-2*Platez-CozGap- (pRz - Platez) - zCGap), pLeftCoverLog, "CoverLeft", pDetLog, false, 0);
 	pLeftCoverLog->SetVisAttributes(G4VisAttributes(true, G4Colour::Grey()));
 
 	G4Box* pTopCover = new G4Box("topCover", Cox2 + 2*Cox, Cox, Coz);
 	G4LogicalVolume* pTopCoverLog = new G4LogicalVolume(pTopCover,StainlessSteel,"topCoverLogical");
-	G4PVPlacement* pTopCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(0., Px + Cox,Dz-2*FCz-Pz-2*Platez-CozGap), pTopCoverLog, "CoverTop", pDetLog, false, 0);
+	G4PVPlacement* pTopCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(0., Px + Cox,Dz-2*FCz-Pz-2*Platez-CozGap- (pRz - Platez) - zCGap), pTopCoverLog, "CoverTop", pDetLog, false, 0);
 	pTopCoverLog->SetVisAttributes(G4VisAttributes(true, G4Colour::Grey()));
 
 	G4Box* pBottomCover = new G4Box("bottomCover", Cox2 - 2*Uy, Cox, Coz);
 	G4LogicalVolume* pBottomCoverLog = new G4LogicalVolume(pBottomCover,StainlessSteel,"bottomCoverLogical");
-	G4PVPlacement* pBottomCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(0.,-Px-Cox,Dz-2*FCz-Pz-2*Platez-CozGap), pBottomCoverLog, "CoverBottom", pDetLog, false, 0);
+	G4PVPlacement* pBottomCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(0.,-Px-Cox,Dz-2*FCz-Pz-2*Platez-CozGap- (pRz - Platez) - zCGap), pBottomCoverLog, "CoverBottom", pDetLog, false, 0);
 	pBottomCoverLog->SetVisAttributes(G4VisAttributes(true, G4Colour::Grey()));
 
 	G4Box* pFrontCover = new G4Box("frontCover",Px + 2*Cox , Py + 2*Cox, FCz);
 	G4LogicalVolume* pFrontCoverLog = new G4LogicalVolume(pFrontCover, StainlessSteel, "frontCoverLogical");
-	G4PVPlacement* pFrontCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(0.,0.,Dz - FCz), pFrontCoverLog, "CoverFront", pDetLog, false, 0);
+	G4PVPlacement* pFrontCoverPhys = new G4PVPlacement(Id_rot, G4ThreeVector(0.,0.,Dz - FCz -zCGap), pFrontCoverLog, "CoverFront", pDetLog, false, 0);
 	pFrontCoverLog->SetVisAttributes(G4VisAttributes(true, G4Colour::Grey()));
 
-	G4Box* pFrontCover1 = new G4Box("frontCover1",FC1x ,Py + 2*Cox, Platez+CozGap);
+	G4Box* pFrontCover1 = new G4Box("frontCover1",FC1x ,Py + 2*Cox, Platez+CozGap + (pRz - Platez)/2.);
 	G4LogicalVolume* pFrontCover1Log = new G4LogicalVolume(pFrontCover1, StainlessSteel, "frontCover1Logical");
-	G4PVPlacement* pFrontCover1Phys = new G4PVPlacement(Id_rot, G4ThreeVector(-Px - 2*Cox + FC1x,0.,Dz - 2.*FCz - Platez-CozGap), pFrontCover1Log, "CoverFront1", pDetLog, false, 0);
+	G4PVPlacement* pFrontCover1Phys = new G4PVPlacement(Id_rot, G4ThreeVector(-Px - 2*Cox + FC1x,0.,Dz - 2.*FCz - Platez-CozGap - (pRz - Platez)/2.- zCGap), pFrontCover1Log, "CoverFront1", pDetLog, false, 0);
 	pFrontCover1Log->SetVisAttributes(G4VisAttributes(true, G4Colour::Grey()));
 
 
-	G4Box* pFrontCover2 = new G4Box("frontCover2" ,Py + 2*Cox-FC1x,FC1x, Platez+CozGap);
+	G4Box* pFrontCover2 = new G4Box("frontCover2" ,Py + 2*Cox-FC1x,FC1x, Platez+CozGap + (pRz - Platez)/2.);
 	G4LogicalVolume* pFrontCover2Log = new G4LogicalVolume(pFrontCover2, StainlessSteel, "frontCover2Logical");
-	G4PVPlacement* pFrontCover2Phys = new G4PVPlacement(Id_rot, G4ThreeVector(FC1x,-Px - 2*Cox + FC1x,Dz - 2.*FCz - Platez-CozGap), pFrontCover2Log, "CoverFront1", pDetLog, false, 0);
+	G4PVPlacement* pFrontCover2Phys = new G4PVPlacement(Id_rot, G4ThreeVector(FC1x,-Px - 2*Cox + FC1x,Dz - 2.*FCz - Platez-CozGap - (pRz - Platez)/2. - zCGap), pFrontCover2Log, "CoverFront1", pDetLog, false, 0);
 	pFrontCover2Log->SetVisAttributes(G4VisAttributes(true, G4Colour::Grey()));
 
 	G4Box* pUnionLeft = new G4Box("unionLeft", Ux, Uy, Uz);
 	G4LogicalVolume* pUnionLeftLog = new G4LogicalVolume(pUnionLeft,Cu,"UnionLeftLogical");
-	G4PVPlacement* pUnionLeftPhys = new G4PVPlacement(Id_rot, G4ThreeVector(-Px -Cox, Coy - Uy, Dz-2*FCz-Pz-2*Platez-CozGap), pUnionLeftLog, "UnionLeft", pDetLog, false, 0);
+	G4PVPlacement* pUnionLeftPhys = new G4PVPlacement(Id_rot, G4ThreeVector(-Px -Cox, Coy - Uy, Dz-2*FCz-Pz-2*Platez-CozGap - (pRz - Platez) - zCGap), pUnionLeftLog, "UnionLeft", pDetLog, false, 0);
 	pUnionLeftLog->SetVisAttributes(G4VisAttributes(true, G4Colour::Yellow())); 
 
 
 	G4Box* pUnionRight = new G4Box("unionRight", Ux, Uy, Uz);
 	G4LogicalVolume* pUnionRightLog = new G4LogicalVolume(pUnionRight,Cu,"UnionRightLogical");
-	G4PVPlacement* pUnionRightPhys = new G4PVPlacement(Id_rot, G4ThreeVector(Px + Cox, Coy - Uy, Dz-2*FCz-Pz-2*Platez-CozGap), pUnionRightLog, "UnionRight", pDetLog, false, 0);
+	G4PVPlacement* pUnionRightPhys = new G4PVPlacement(Id_rot, G4ThreeVector(Px + Cox, Coy - Uy, Dz-2*FCz-Pz-2*Platez-CozGap - (pRz - Platez) - zCGap), pUnionRightLog, "UnionRight", pDetLog, false, 0);
 	pUnionRightLog->SetVisAttributes(G4VisAttributes(true, G4Colour::Yellow())); 
 
 
 	G4Box* pUnionBottom = new G4Box("unionBottom", Uy, Ux, Uz);
 	G4LogicalVolume* pUnionBottomLog = new G4LogicalVolume(pUnionBottom,Cu,"UnionBottomLogical");
-	G4PVPlacement* pUnionBottomPhys = new G4PVPlacement(Id_rot, G4ThreeVector(Cox2 - Uy, -Px-Cox, Dz-2*FCz-Pz-2*Platez), pUnionBottomLog, "UnionBottom", pDetLog, false, 0);
-	G4PVPlacement* pUnionBottom2Phys = new G4PVPlacement(Id_rot, G4ThreeVector(-Cox2 + Uy, -Px-Cox, Dz-2*FCz-Pz-2*Platez), pUnionBottomLog, "UnionBottom2", pDetLog, false, 0);
+	G4PVPlacement* pUnionBottomPhys = new G4PVPlacement(Id_rot, G4ThreeVector(Cox2 - Uy, -Px-Cox, Dz-2*FCz-Pz-2*Platez - (pRz - Platez) - zCGap), pUnionBottomLog, "UnionBottom", pDetLog, false, 0);
+	G4PVPlacement* pUnionBottom2Phys = new G4PVPlacement(Id_rot, G4ThreeVector(-Cox2 + Uy, -Px-Cox, Dz-2*FCz-Pz-2*Platez - (pRz - Platez) - zCGap), pUnionBottomLog, "UnionBottom2", pDetLog, false, 0);
 	pUnionBottomLog->SetVisAttributes(G4VisAttributes(true, G4Colour::Yellow())); 
 
 	//Acrylic Plate
 	G4Box* pPlateSolid = new G4Box("PlateBox", Platex, Platey, Platez);
 	G4LogicalVolume* pPlateLog = new G4LogicalVolume(pPlateSolid, UVTAcrylic, "PlateLogical");
-	G4PVPlacement* pPlatePhys = new G4PVPlacement(Id_rot, G4ThreeVector(/*-Px-2*Cox+Platex+2*FC1x*/0.,/*-Px-2*Cox+Platey+2*FC1x*/0.,Dz-2*FCz-Platez), pPlateLog, "Plate", pDetLog, false, 0);
+	G4PVPlacement* pPlatePhys = new G4PVPlacement(Id_rot, G4ThreeVector(/*-Px-2*Cox+Platex+2*FC1x*/0.,/*-Px-2*Cox+Platey+2*FC1x*/0.,Dz-2*FCz-Platez- (pRz - Platez) - zCGap), pPlateLog, "Plate", pDetLog, false, 0);
 	G4VisAttributes* plateVA = new G4VisAttributes(true, G4Colour::Red());
 	plateVA->SetForceWireframe(true);
 	pPlateLog->SetVisAttributes(plateVA);
 
-	G4Tubs* pCoreSolid  = new G4Tubs("CoreTube" , 0, CoreR , Px + 2.*Cox-FC1x, 0, Phi);
-	G4Tubs* pClad1Solid = new G4Tubs("Clad1Tube", 0, Clad1R, Px + 2.*Cox-FC1x, 0, Phi);
-	G4Tubs* pClad2Solid = new G4Tubs("Clad2Tube", 0, Clad2R, Px + 2.*Cox-FC1x, 0, Phi);
+	G4Tubs* pCoreSolid  = new G4Tubs("CoreTube" , 0, CoreR , Px + 2.*Cox - (Py + 2*Cox - Platey)/2., 0, Phi);
+	G4Tubs* pClad1Solid = new G4Tubs("Clad1Tube", 0, Clad1R, Px + 2.*Cox - (Py + 2*Cox - Platey)/2., 0, Phi);
+	G4Tubs* pClad2Solid = new G4Tubs("Clad2Tube", 0, Clad2R, Px + 2.*Cox - (Py + 2*Cox - Platey)/2., 0, Phi);
 
 	G4LogicalVolume* pCoreLog  = new G4LogicalVolume(pCoreSolid,  Polystyrene, "CoreLogical" );
 	G4VisAttributes* coreVA = new G4VisAttributes(true);
@@ -580,37 +603,95 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 		tr = G4ThreeVector( x*2*Sx, 0., 0.);
 		slot_assembly->AddPlacedVolume(pFiberLog, tr, rot);
 	}
-	tr =  G4ThreeVector(0.,FC1x, -Platez+Fz+0.1*mm);
+	tr =  G4ThreeVector(0.,(Py + 2*Cox - Platey)/2., -Platez+Fz+0.1*mm);
 	slot_assembly->MakeImprint(pPlateLog, tr, Id_rot);
 	rot = new G4RotationMatrix();
 	rot->rotateY(180.*deg);
 	rot->rotateZ(90.*deg);
-	tr =  G4ThreeVector(FC1x,0., Platez-Fz-0.1*mm);
+	tr =  G4ThreeVector((Px + 2*Cox - Platex)/2., 0., Platez-Fz-0.1*mm);
 	slot_assembly->MakeImprint(pPlateLog, tr, rot);
 
-    	//Readout geometry
-    	G4Box* pReadoutSolid_X = new G4Box("ReadoutBox_X", ROw, ROh, ROd);
-    	G4Box* pReadoutSolid_Y = new G4Box("ReadoutBox_Y", ROh, ROw, ROd);
-    	G4LogicalVolume* pReadoutLog_X = new G4LogicalVolume(pReadoutSolid_X, Air, "ReadoutLogical_X");
-    	G4LogicalVolume* pReadoutLog_Y = new G4LogicalVolume(pReadoutSolid_Y, Air, "ReadoutLogical_Y");
+	// Pre-readout cover
+	G4Box *preReadoutTop = new G4Box("preReadoutTop", pRx + (Py + 2.*Cox - Platey)/2., pRy, pRz);
+	G4LogicalVolume *preReadoutTopLog = new G4LogicalVolume(preReadoutTop, Polyethylene, "preReadoutTopLog");
+	G4PVPlacement *preReadoutTopPhys = new G4PVPlacement(Id_rot, G4ThreeVector((Py + 2.*Cox - Platey)/2., Py + 2*Cox - 5.*mm,Dz-2*FCz-Platez - (pRz - Platez) - zCGap), preReadoutTopLog, "preReadoutTopPhys", pDetLog, false, 0);
+	G4VisAttributes* preReadoutTop_VA = new G4VisAttributes(true, G4Colour::Blue());
+	preReadoutTopLog->SetVisAttributes(preReadoutTop_VA);
+	
+	// Pre-readout cover
+	G4Box *preReadoutRight = new G4Box("preReadoutRight", pRy, pRx - (2.*pRy - (Py + 2.*Cox - Platey))/2., pRz);
+	G4LogicalVolume *preReadoutRightLog = new G4LogicalVolume(preReadoutRight, Polyethylene, "preReadoutRightLog");
+	G4PVPlacement *preReadoutRightPhys = new G4PVPlacement(Id_rot, G4ThreeVector(Px + 2*Cox - 5.*mm,-(2.*pRy - (Py + 2.*Cox - Platey))/2.,Dz-2*FCz-Platez - (pRz - Platez) - zCGap), preReadoutRightLog, "preReadoutRightPhys", pDetLog, false, 0);
+	G4VisAttributes* preReadoutRight_VA = new G4VisAttributes(true, G4Colour::Blue());
+	preReadoutRightLog->SetVisAttributes(preReadoutRight_VA);
 
-    	G4VisAttributes* readout_VA = new G4VisAttributes(true, G4Colour::Grey());
+	// Readout Cover
+	G4Box *coverReadoutTop = new G4Box("coverReadoutTop", CRx,CRy,CRz);
+	G4LogicalVolume *coverReadoutTopLog = new G4LogicalVolume(coverReadoutTop, Al, "coverReadoutTopLog");
+	G4PVPlacement *coverReadoutTopPhys = new G4PVPlacement(Id_rot, G4ThreeVector(0.,Py + 2*Cox + 10.5*mm,Dz - 20.15*mm), coverReadoutTopLog, "coverReadoutTopPhys", pDetLog, false, 0);
+	G4VisAttributes* coverReadoutTop_VA = new G4VisAttributes(true, G4Colour::Grey());
+	coverReadoutTopLog->SetVisAttributes(coverReadoutTop_VA);
+
+	// Readout Cover
+	G4Box *coverReadoutRight = new G4Box("coverReadoutRight", CRy,CRx,CRz);
+	G4LogicalVolume *coverReadoutRightLog = new G4LogicalVolume(coverReadoutRight, Al, "coverReadoutRightLog");
+	G4PVPlacement *coverReadoutRightPhys = new G4PVPlacement(Id_rot, G4ThreeVector(Px + 2*Cox + 10.5*mm, 0., Dz - 20.15*mm), coverReadoutRightLog, "coverReadoutRightPhys", pDetLog, false, 0);
+	G4VisAttributes* coverReadoutRight_VA = new G4VisAttributes(true, G4Colour::Grey());
+	coverReadoutRightLog->SetVisAttributes(coverReadoutRight_VA);
+
+
+    	//Readout geometry
+    	G4Box* pReadoutSolid_X = new G4Box("ReadoutBox_X", ROw, ROh, ROd + Gap/2.);
+    	G4Box* pReadoutSolid_Y = new G4Box("ReadoutBox_Y", ROh, ROw, ROd + Gap/2.);
+    	G4LogicalVolume* pReadoutLog_X = new G4LogicalVolume(pReadoutSolid_X, Al, "ReadoutLogical_X");
+    	G4LogicalVolume* pReadoutLog_Y = new G4LogicalVolume(pReadoutSolid_Y, Al, "ReadoutLogical_Y");
+
+    	G4VisAttributes* readout_VA = new G4VisAttributes(false, G4Colour::Grey());
     	readout_VA->SetForceWireframe(true);
     	pReadoutLog_X->SetVisAttributes(readout_VA);
     	pReadoutLog_Y->SetVisAttributes(readout_VA);
 
-    	G4PVPlacement* ROPhys_X = new G4PVPlacement(Id_rot, G4ThreeVector(0., Px+ROh+2.*Cox, Dz-2*FCz-Platez), pReadoutLog_X, "Readout_X", pDetLog, false, 0);
-    	G4PVPlacement* ROPhys_Y = new G4PVPlacement(Id_rot, G4ThreeVector(Py+ROh+2.*Cox, 0., Dz-2*FCz-Platez), pReadoutLog_Y, "Readout_Y", pDetLog, false, 0);
+    	G4PVPlacement* ROPhys_X = new G4PVPlacement(Id_rot, G4ThreeVector(0., Px+ROh+2.*Cox - (Py + 2*Cox + 10.5*mm), Dz-2*FCz-Platez - (pRz - Platez) - zCGap - Dz + 20.15*mm), pReadoutLog_X, "Readout_X", coverReadoutTopLog, false, 0);
+    	G4PVPlacement* ROPhys_Y = new G4PVPlacement(Id_rot, G4ThreeVector(Py+ROh+2.*Cox - (Px + 2*Cox + 10.5*mm), 0., Dz-2*FCz-Platez - (pRz - Platez) - zCGap - Dz + 20.15*mm), pReadoutLog_Y, "Readout_Y", coverReadoutRightLog, false, 0);
 
     	//Readout Division: 25 slices
     	G4Box* pRODivSolid_X = new G4Box("RODivBox_X", RODiv, ROh, ROd);
     	G4Box* pRODivSolid_Y = new G4Box("RODivBox_Y", ROh, RODiv, ROd);
-    	G4LogicalVolume* pRODivLog_X = new G4LogicalVolume(pRODivSolid_X, Air, "RODivLogical_X");
-    	G4LogicalVolume* pRODivLog_Y = new G4LogicalVolume(pRODivSolid_Y, Air, "RODivLogical_Y");
+   	G4LogicalVolume* pRODivLog_X = new G4LogicalVolume(pRODivSolid_X, UVTAcrylic, "RODivLogical_X");
+    	G4LogicalVolume* pRODivLog_Y = new G4LogicalVolume(pRODivSolid_Y, UVTAcrylic, "RODivLogical_Y");
 	pRODivLog_X->SetVisAttributes(G4VisAttributes(true , G4Colour::Grey()));
 	pRODivLog_Y->SetVisAttributes(G4VisAttributes(true , G4Colour::Grey()));
-	G4VPhysicalVolume* pRODivPhys_X = new G4PVReplica("RO_X", pRODivLog_X, ROPhys_X, kXAxis, nx, 2.*RODiv);
-	G4VPhysicalVolume* pRODivPhys_Y = new G4PVReplica("RO_Y", pRODivLog_Y, ROPhys_Y, kYAxis, ny, 2.*RODiv);	
+	G4VPhysicalVolume* pRODivPhys_X = new G4PVReplica("RO_X", pRODivLog_X, ROPhys_X, kXAxis, nx, 2.*ROw/nx);
+	G4VPhysicalVolume* pRODivPhys_Y = new G4PVReplica("RO_Y", pRODivLog_Y, ROPhys_Y, kYAxis, ny, 2.*ROw/nx);	
+
+	//MPPC
+    	G4Box* pMPPCSolid_X = new G4Box("MPPCBox_X", MPPCw, MPPCh, MPPCd + Gap/2.);
+    	G4Box* pMPPCSolid_Y = new G4Box("MPPCBox_Y", MPPCh, MPPCw, MPPCd + Gap/2.);
+    	G4LogicalVolume* pMPPCLog_X = new G4LogicalVolume(pMPPCSolid_X, Al, "MPPCLogical_X");
+    	G4LogicalVolume* pMPPCLog_Y = new G4LogicalVolume(pMPPCSolid_Y, Al, "MPPCLogical_Y");
+
+    	G4VisAttributes* mppc_VA = new G4VisAttributes(false, G4Colour::Grey());
+    	mppc_VA->SetForceWireframe(true);
+    	pMPPCLog_X->SetVisAttributes(mppc_VA);
+    	pMPPCLog_Y->SetVisAttributes(mppc_VA);
+
+    	G4PVPlacement* MPPCPhys_X = new G4PVPlacement(Id_rot, G4ThreeVector(0., Px+ MPPCh +2.*Cox + 2*ROh - (Py + 2*Cox + 10.5*mm), Dz-2*FCz-Platez - (pRz - Platez) - zCGap - Dz + 20.15*mm ), pMPPCLog_X, "pMPPC_X", coverReadoutTopLog, false, 0);
+    	G4PVPlacement* MPPCPhys_Y = new G4PVPlacement(Id_rot, G4ThreeVector(Py + MPPCh + 2.*Cox + 2*ROh - (Py + 2*Cox + 10.5*mm), 0., Dz-2*FCz-Platez - (pRz - Platez) - zCGap - Dz + 20.15*mm), pMPPCLog_Y, "pMPPC_Y", coverReadoutRightLog, false, 0);
+
+    	//MPPC Division: 25 slices
+    	G4Box* pMPPCDivSolid_X = new G4Box("MPPCDivBox_X", MPPCDiv, MPPCh, MPPCd);
+    	G4Box* pMPPCDivSolid_Y = new G4Box("MPPCDivBox_Y", MPPCh, MPPCDiv, MPPCd);
+   	G4LogicalVolume* pMPPCDivLog_X = new G4LogicalVolume(pMPPCDivSolid_X, UVTAcrylic, "MPPCDivLogical_X");
+    	G4LogicalVolume* pMPPCDivLog_Y = new G4LogicalVolume(pMPPCDivSolid_Y, UVTAcrylic, "MPPCDivLogical_Y");
+	pMPPCDivLog_X->SetVisAttributes(G4VisAttributes(true , G4Colour::Grey()));
+	pMPPCDivLog_Y->SetVisAttributes(G4VisAttributes(true , G4Colour::Grey()));
+	G4VPhysicalVolume* pMPPCDivPhys_X = new G4PVReplica("MPPC_X", pMPPCDivLog_X, MPPCPhys_X, kXAxis, nx, 2.*MPPCw/nx);
+	G4VPhysicalVolume* pMPPCDivPhys_Y = new G4PVReplica("MPPC_Y", pMPPCDivLog_Y, MPPCPhys_Y, kYAxis, ny, 2.*MPPCw/nx);	
+
+
+
+	// Readout Reflexivity
+	
 
 	//Reflective geometry
 	//G4Box* pReflectiveSolid_X = new G4Box("ReflectiveBox_X", ROw, ROh, ROd);
@@ -647,7 +728,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	crystalOpSurface->SetFinish(polishedfrontpainted);
 	crystalOpSurface->SetMaterialPropertiesTable(CMPT);
 	new G4LogicalBorderSurface("CrystalSurface",pCrystalPhys,pCSurfPhys,crystalOpSurface);
-
+	
+	// Readout Surface
+	new G4LogicalBorderSurface("ReadoutSurface_X", ROPhys_X, pRODivPhys_X, crystalOpSurface);
+	new G4LogicalBorderSurface("ReadoutSurface_Y", ROPhys_Y, pRODivPhys_Y, crystalOpSurface);
 
 	G4double   plateReflectivity[n] = {0.9, 0.9};
 	G4MaterialPropertiesTable* PMPT = new G4MaterialPropertiesTable();
@@ -692,8 +776,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	//pWorldLog->SetSensitiveDetector(pSD);
 	//pDetLog->SetSensitiveDetector(pSD);
 	//pSliceLog->SetSensitiveDetector(pSD);
-	pRODivLog_X->SetSensitiveDetector(pSD);
-	pRODivLog_Y->SetSensitiveDetector(pSD);
+	pMPPCDivLog_X->SetSensitiveDetector(pSD);
+	pMPPCDivLog_Y->SetSensitiveDetector(pSD);
 	//pCPlateSurfLog->SetSensitiveDetector(pSD);
 
 	return pWorldPhys;

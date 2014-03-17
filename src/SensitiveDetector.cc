@@ -41,9 +41,9 @@ G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*){
 	G4String rName = tHandle->GetVolume()->GetName();
 	G4int slice = tHandle->GetReplicaNumber();
 	G4int axis;
-	if (rName == "RO_X") axis = 0;
+	if (rName == "MPPC_X") axis = 0;
 	else{
- 		if (rName == "RO_Y") axis = 1;
+ 		if (rName == "MPPC_Y") axis = 1;
 		else{
 			axis = -1;
 			G4cout << "******** Readout error ********** " << G4endl;
